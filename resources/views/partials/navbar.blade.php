@@ -26,11 +26,13 @@
                             <x-nav-link :href="url('/dashboard')" :active="request()->is('dashboard')">
                                 {{ __('Home') }}
                             </x-nav-link>
-                            <x-nav-link href="#" :active="false">
-                                {{ __('Riwayat Booking') }}
+                            <x-nav-link :href="route('booking.history')" :active="request()->routeIs('booking.history')">
+                                Riwayat Booking
                             </x-nav-link>
-                            <x-nav-link href="#" :active="false">
-                                {{ __('Notifikasi') }}
+
+                            <x-nav-link :href="route('notifications.index')"
+                                :active="request()->routeIs('notifications.index')">
+                                Notifikasi
                             </x-nav-link>
                         @endif
 
@@ -48,12 +50,16 @@
                 @auth
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
-                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                            <button
+                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                                 <div>{{ Auth::user()->name }}</div>
 
                                 <div class="ms-1">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                            clip-rule="evenodd" />
                                     </svg>
                                 </div>
                             </button>
@@ -64,30 +70,42 @@
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
 
-                                <x-dropdown-link :href="route('logout')"
-                                        onclick="event.preventDefault();
-                                                    this.closest('form').submit();">
+                                <x-dropdown-link :href="route('logout')" onclick="event.preventDefault();
+                                                        this.closest('form').submit();">
                                     {{ __('Log Out') }}
                                 </x-dropdown-link>
                             </form>
                         </x-slot>
                     </x-dropdown>
                 @else
-                    <div class="flex space-x-4">
-                        <a href="{{ route('login') }}" class="text-sm text-gray-700 hover:text-emerald-600 font-medium transition">Log in</a>
+                    <div class="flex items-center gap-4">
+                        <a href="{{ route('login') }}" class="inline-flex items-center h-10 text-sm font-medium text-gray-700
+                       hover:text-emerald-600 transition">
+                            Log in
+                        </a>
+
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="text-sm bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition">Register</a>
+                            <a href="{{ route('register') }}" class="inline-flex items-center h-10 px-4 rounded-lg
+                               bg-emerald-600 text-sm font-semibold text-white
+                               hover:bg-emerald-700 transition">
+                                Register
+                            </a>
                         @endif
                     </div>
                 @endauth
+
             </div>
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
+                <button @click="open = ! open"
+                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
+                            stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -101,7 +119,7 @@
                 <x-responsive-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
                     {{ __('Home') }}
                 </x-responsive-nav-link>
-                 <x-responsive-nav-link href="#">
+                <x-responsive-nav-link href="#">
                     {{ __('Daftar Lapangan') }}
                 </x-responsive-nav-link>
             @endguest
@@ -125,19 +143,20 @@
                 <div class="mt-3 space-y-1">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <x-responsive-nav-link :href="route('logout')"
-                                onclick="event.preventDefault();
-                                            this.closest('form').submit();">
+                        <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
+                                                this.closest('form').submit();">
                             {{ __('Log Out') }}
                         </x-responsive-nav-link>
                     </form>
                 </div>
             </div>
         @else
-             <div class="pt-4 pb-4 border-t border-gray-200 px-4 space-y-3">
-                <a href="{{ route('login') }}" class="block text-center w-full py-2 bg-gray-100 rounded text-gray-700">Login</a>
-                <a href="{{ route('register') }}" class="block text-center w-full py-2 bg-emerald-600 text-white rounded">Register</a>
-             </div>
+            <div class="pt-4 pb-4 border-t border-gray-200 px-4 space-y-3">
+                <a href="{{ route('login') }}"
+                    class="block text-center w-full py-2 bg-gray-100 rounded text-gray-700">Login</a>
+                <a href="{{ route('register') }}"
+                    class="block text-center w-full py-2 bg-emerald-600 text-white rounded">Register</a>
+            </div>
         @endauth
     </div>
 </nav>

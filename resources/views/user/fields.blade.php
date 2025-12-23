@@ -19,7 +19,7 @@
                 @for ($i = 1; $i <= 3; $i++)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
                     <div class="relative h-48">
-                        <img src="https://images.unsplash.com/photo-1518605348435-e000c0179c75?q=80&w=2670&auto=format&fit=crop" class="w-full h-full object-cover" alt="Lapangan A">
+                        <img src="https://i.pinimg.com/1200x/47/a1/35/47a135ace3bb63af9268b3dc450b5008.jpg" class="w-full h-full object-cover" alt="Lapangan A">
                         <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-emerald-600 shadow-sm">
                             Indoor
                         </div>

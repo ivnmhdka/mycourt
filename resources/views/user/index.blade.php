@@ -25,7 +25,7 @@
                 <!-- Badminton Card -->
                 <a href="{{ url('/fields?category=badminton') }}" class="group block overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-2xl">
                     <div class="relative h-64 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1626224583764-847890e0b3b0?q=80&w=2670&auto=format&fit=crop" 
+                        <img src="https://i.pinimg.com/736x/2e/8b/3d/2e8b3d634b9cd14891bfbb00d0c4e7b5.jpg" 
                              alt="Badminton" 
                              class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
