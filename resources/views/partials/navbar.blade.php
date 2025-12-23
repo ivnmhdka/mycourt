@@ -26,11 +26,12 @@
                             <x-nav-link :href="url('/dashboard')" :active="request()->is('dashboard')">
                                 {{ __('Home') }}
                             </x-nav-link>
-                            <x-nav-link href="#" :active="false">
-                                {{ __('Riwayat Booking') }}
+                            <x-nav-link :href="route('booking.history')" :active="request()->routeIs('booking.history')">
+                                Riwayat Booking
                             </x-nav-link>
-                            <x-nav-link href="#" :active="false">
-                                {{ __('Notifikasi') }}
+
+                             <x-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.index')">
+                                Notifikasi
                             </x-nav-link>
                         @endif
 
