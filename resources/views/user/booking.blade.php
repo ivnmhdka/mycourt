@@ -57,7 +57,7 @@
                         <!-- Date Picker Mockup -->
                          <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Booking</label>
-                            <input type="date" value="{{ date('Y-m-d') }}" class="block w-full md:w-1/3 rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <input type="date" x-model="selectedDate" class="block w-full md:w-1/3 rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         </div>
 
                         <!-- Slots -->
@@ -110,12 +110,18 @@
                         </div>
 
                         <!-- Form Action -->
-                        <form action="#" method="POST">
+                        <form action="{{ route('booking.store') }}" method="POST">
                             @csrf
+                            <input type="hidden" name="field_id" value="{{ $field->id ?? 1 }}"> <!-- Fallback to 1 if not set for demo -->
+                            <input type="hidden" name="date" :value="selectedDate">
+                            <input type="hidden" name="start_time" :value="startTime">
+                            <input type="hidden" name="duration" :value="duration">
+                            
+                            <!-- Debugging/Legacy input -->
                             <input type="hidden" name="slots" :value="JSON.stringify(selectedSlots)">
                             
                             <button 
-                                type="button" 
+                                type="submit" 
                                 :disabled="selectedSlots.length === 0"
                                 :class="{'opacity-50 cursor-not-allowed': selectedSlots.length === 0}"
                                 class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-200 transform transition hover:-translate-y-0.5"
@@ -136,7 +142,15 @@
     <script>
         function bookingSystem() {
             return {
+                selectedDate: '{{ date('Y-m-d') }}',
                 selectedSlots: [],
+                get startTime() {
+                    if (this.selectedSlots.length === 0) return '';
+                    return this.selectedSlots[0];
+                },
+                get duration() {
+                    return this.selectedSlots.length;
+                },
                 toggleSlot(time, status) {
                     if (status === 'booked') return;
                     
