@@ -23,16 +23,34 @@ class UserBookingController extends Controller
         return view('user.fields', compact('fields'));
     }
 
-    public function show($id)
-    {
-        $field = Field::findOrFail($id);
-        
-        // Fetch existing bookings for this field to show on calendar (simplified api or passed to view)
-        // For now, we just pass the field details.
-        // In a real scenario, you'd pass unavailable slots here.
+   public function show(Request $request, $id)
+{
+    $field = Field::findOrFail($id);
+    
+    // Ambil tanggal dari input, jika tidak ada pakai hari ini (2025-12-27)
+    // Untuk tes dengan data Anda, Anda bisa sementara ganti ke '2025-12-26'
+    $date = $request->input('date', Carbon::today()->toDateString());
 
-        return view('user.booking', compact('field'));
+    $bookings = Booking::where('field_id', $id)
+        ->whereDate('start_time', $date)
+        ->whereIn('status', ['pending', 'paid'])
+        ->get();
+
+    $bookedSlots = [];
+
+    foreach ($bookings as $booking) {
+        $start = Carbon::parse($booking->start_time);
+        $end = Carbon::parse($booking->end_time);
+
+        // Tambahkan semua jam di antara start dan end ke dalam array
+        while ($start < $end) {
+            $bookedSlots[] = $start->format('H:i');
+            $start->addHour();
+        }
     }
+
+    return view('user.booking', compact('field', 'bookedSlots', 'date'));
+}
 
     public function store(Request $request)
     {

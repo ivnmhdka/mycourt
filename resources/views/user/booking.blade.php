@@ -62,18 +62,20 @@
 
                         <!-- Slots -->
                         <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                            <!-- Mock Slots Loop -->
                             @foreach(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'] as $time)
                                 @php
-                                    $status = in_array($time, ['19:00', '20:00']) ? 'booked' : 'available';
+                                    $isBooked = in_array($time, $bookedSlots ?? []);
+                                    $status = $isBooked ? 'booked' : 'available';
                                 @endphp
                                 <button 
+                                    type="button"
                                     @click="toggleSlot('{{ $time }}', '{{ $status }}')"
                                     :class="{
                                         'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100': '{{ $status }}' === 'available' && !selectedSlots.includes('{{ $time }}'),
                                         'bg-red-50 border-red-200 text-red-400 cursor-not-allowed': '{{ $status }}' === 'booked',
                                         'bg-yellow-50 border-yellow-400 text-yellow-700 ring-2 ring-yellow-400': selectedSlots.includes('{{ $time }}')
                                     }"
+                                    {{ $isBooked ? 'disabled' : '' }}
                                     class="py-3 text-sm font-medium rounded-lg border transition-all duration-200 flex flex-col items-center justify-center">
                                     <span>{{ $time }}</span>
                                     <span class="text-[10px] mt-1 font-normal" x-text="'{{ $status }}' === 'booked' ? 'Booked' : (selectedSlots.includes('{{ $time }}') ? 'Dipilih' : 'Rp 120k')"></span>
