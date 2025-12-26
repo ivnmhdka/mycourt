@@ -56,9 +56,8 @@ Route::middleware(['auth', 'verified', 'role:manager'])
         Route::get('/bookings', [ManagerController::class, 'index'])->name('bookings');
         Route::post('/bookings/{id}/status', [ManagerController::class, 'updateStatus'])->name('bookings.updateStatus');
 
-        Route::get('/schedule', function () {
-            return view('manager.schedule');
-        })->name('schedule');
+        Route::get('/schedule', [ManagerController::class, 'schedule'])->name('schedule');
+        Route::post('/schedule', [ManagerController::class, 'updateSchedule'])->name('schedule.update');
     });
 
 // ==============================
