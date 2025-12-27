@@ -59,7 +59,15 @@ Route::middleware(['auth', 'verified', 'role:manager'])
         Route::get('/schedule', function () {
             return view('manager.schedule');
         })->name('schedule');
+        
+Route::get('/laporan/pendapatan/pdf', [ManagerController::class, 'laporanPendapatanPdf'])
+    ->name('laporan.pendapatan.pdf');
+
+Route::get('/laporan/pendapatan/excel', [ManagerController::class, 'laporanPendapatanExcel'])
+    ->name('laporan.pendapatan.excel');
+
     });
+
 
 // ==============================
 // Admin Routes
