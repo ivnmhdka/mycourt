@@ -33,7 +33,13 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
 
     Route::get('/fields', [UserBookingController::class, 'index'])->name('fields.index');
     Route::get('/booking/{id}', [UserBookingController::class, 'show'])->name('booking.show');
+    Route::get('/booking/{id}', [UserBookingController::class, 'show'])->name('booking.show');
     Route::post('/booking', [UserBookingController::class, 'store'])->name('booking.store');
+    
+    // Payment Flow
+    Route::get('/booking/{id}/payment', [UserBookingController::class, 'payment'])->name('booking.payment');
+    Route::post('/booking/{id}/pay', [UserBookingController::class, 'confirmPayment'])->name('booking.pay');
+    Route::get('/booking/{id}/success', [UserBookingController::class, 'success'])->name('booking.success');
 
     Route::get('/riwayat-booking', [BookingHistoryController::class, 'index'])->name('booking.history');
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifications.index');

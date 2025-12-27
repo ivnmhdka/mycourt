@@ -74,8 +74,41 @@ class UserBookingController extends Controller
             'status' => 'pending',
         ]);
 
-        // Redirect to a success/payment page (Using dashboard for now as placeholder for payment)
-        // ideally: return redirect()->route('booking.payment', $booking->id);
-        return redirect()->route('dashboard')->with('success', 'Booking berhasil dibuat! Silakan lanjutkan pembayaran.');
+        // Redirect to a success/payment page
+        return redirect()->route('booking.payment', $booking->id);
+    }
+
+    public function payment($id)
+    {
+        $booking = Booking::with('field')->findOrFail($id);
+        
+        // Prevent accessing payment page if already paid or cancelled, etc if needed.
+        if ($booking->status !== 'pending') {
+             return redirect()->route('dashboard')->with('error', 'Booking tidak dalam status pending.');
+        }
+
+        return view('user.payment', compact('booking'));
+    }
+
+    public function confirmPayment($id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        if ($booking->status !== 'pending') {
+             return redirect()->route('dashboard')->with('error', 'Booking tidak valid untuk pembayaran.');
+        }
+
+        // Update status
+        $booking->update([
+            'status' => 'paid' // Or 'paid' depending on your logic, using 'confirmed' as simple flow
+        ]);
+
+        return redirect()->route('booking.success', $booking->id);
+    }
+
+    public function success($id)
+    {
+        $booking = Booking::findOrFail($id);
+        return view('user.success', compact('booking'));
     }
 }

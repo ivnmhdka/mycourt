@@ -143,7 +143,7 @@
                         <!-- Date Picker Mockup -->
                         <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Booking</label>
-                            <input type="date" value="{{ date('Y-m-d') }}"
+                            <input type="date" x-model="selectedDate"
                                 class="block w-full md:w-1/3 rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         </div>
 
@@ -155,10 +155,10 @@
                                     $status = in_array($time, ['19:00', '20:00']) ? 'booked' : 'available';
                                 @endphp
                                 <button @click="toggleSlot('{{ $time }}', '{{ $status }}')" :class="{
-                                                'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100': '{{ $status }}' === 'available' && !selectedSlots.includes('{{ $time }}'),
-                                                'bg-red-50 border-red-200 text-red-400 cursor-not-allowed': '{{ $status }}' === 'booked',
-                                                'bg-yellow-50 border-yellow-400 text-yellow-700 ring-2 ring-yellow-400': selectedSlots.includes('{{ $time }}')
-                                            }"
+                                                    'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100': '{{ $status }}' === 'available' && !selectedSlots.includes('{{ $time }}'),
+                                                    'bg-red-50 border-red-200 text-red-400 cursor-not-allowed': '{{ $status }}' === 'booked',
+                                                    'bg-yellow-50 border-yellow-400 text-yellow-700 ring-2 ring-yellow-400': selectedSlots.includes('{{ $time }}')
+                                                }"
                                     class="py-3 text-sm font-medium rounded-lg border transition-all duration-200 flex flex-col items-center justify-center">
                                     <span>{{ $time }}</span>
                                     <span class="text-[10px] mt-1 font-normal"
@@ -186,7 +186,7 @@
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">Tanggal</span>
-                                <span class="font-medium text-gray-900">{{ date('d M Y') }}</span>
+                                <span class="font-medium text-gray-900"><span x-text="selectedDate"></span></span>
                             </div>
                             <div class="border-t border-gray-100 pt-3">
                                 <div class="flex justify-between text-sm mb-2">
@@ -203,12 +203,17 @@
                         </div>
 
                         <!-- Form Action -->
-                        <form action="#" method="POST">
+                        <form action="{{ route('booking.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="field_id" value="{{ $field->id }}">
+                            <input type="hidden" name="date" :value="selectedDate">
+                            <input type="hidden" name="start_time" :value="startTime">
+                            <input type="hidden" name="duration" :value="duration">
+
+                            <!-- Debugging/Legacy input -->
                             <input type="hidden" name="slots" :value="JSON.stringify(selectedSlots)">
 
-                            <button type="button" :disabled="selectedSlots.length === 0"
+                            <button type="submit" :disabled="selectedSlots.length === 0"
                                 :class="{'opacity-50 cursor-not-allowed': selectedSlots.length === 0}"
                                 class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-200 transform transition hover:-translate-y-0.5">
                                 Lanjut Pembayaran
@@ -227,8 +232,16 @@
     <script>
         function bookingSystem(price) {
             return {
+                selectedDate: '{{ date('Y-m-d') }}',
                 selectedSlots: [],
                 pricePerHour: price,
+                get startTime() {
+                    if (this.selectedSlots.length === 0) return '';
+                    return this.selectedSlots[0];
+                },
+                get duration() {
+                    return this.selectedSlots.length;
+                },
                 toggleSlot(time, status) {
                     if (status === 'booked') return;
 
