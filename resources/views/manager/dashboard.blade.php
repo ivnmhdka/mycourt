@@ -14,7 +14,7 @@
                     <div class="p-6">
                         <div class="text-gray-500 text-sm font-medium">Booking Pending</div>
                         <div class="flex items-center mt-2">
-                             <div class="text-3xl font-bold text-gray-800">12</div>
+                             <div class="text-3xl font-bold text-gray-800">{{ $pendingCount ?? 0 }}</div>
                              <span class="ml-2 text-xs bg-yellow-100 text-yellow-700 rounded-full px-2 py-0.5">Butuh Aksi</span>
                         </div>
                     </div>
@@ -25,8 +25,8 @@
                     <div class="p-6">
                         <div class="text-gray-500 text-sm font-medium">Booking Hari Ini</div>
                         <div class="flex items-center mt-2">
-                             <div class="text-3xl font-bold text-gray-800">8</div>
-                             <span class="ml-2 text-xs bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5">+2 dari kemarin</span>
+                             <div class="text-3xl font-bold text-gray-800">{{ $todayBookings ?? 0 }}</div>
+                             <span class="ml-2 text-xs bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5">Booking Masuk</span>
                         </div>
                     </div>
                 </div>
@@ -97,50 +97,45 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                <!-- Mock Data Row 1 -->
+                                @forelse($recentBookings as $booking)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">Budi Santoso</div>
-                                        <div class="text-sm text-gray-500">081234567890</div>
+                                        <div class="text-sm font-medium text-gray-900">{{ $booking->user->name ?? 'Guest' }}</div>
+                                        <div class="text-sm text-gray-500">{{ $booking->user->email ?? '-' }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">Futsal 1 (Vinyl)</div>
+                                        <div class="text-sm text-gray-900">{{ $booking->field->name }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">15 Des 2023</div>
-                                        <div class="text-sm text-gray-500">20:00 - 22:00 (2 Jam)</div>
+                                        <div class="text-sm text-gray-900">{{ $booking->start_time->format('d M Y') }}</div>
+                                        <div class="text-sm text-gray-500">{{ $booking->start_time->format('H:i') }} - {{ $booking->end_time->format('H:i') }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                            Pending
+                                        @php
+                                            $statusClasses = [
+                                                'pending' => 'bg-yellow-100 text-yellow-800',
+                                                'paid' => 'bg-emerald-100 text-emerald-800',
+                                                'approved' => 'bg-emerald-100 text-emerald-800',
+                                                'rejected' => 'bg-red-100 text-red-800',
+                                                'cancelled' => 'bg-gray-100 text-gray-800',
+                                            ];
+                                            $class = $statusClasses[$booking->status] ?? 'bg-gray-100 text-gray-800';
+                                        @endphp
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $class }}">
+                                            {{ ucfirst($booking->status) }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <a href="#" class="text-emerald-600 hover:text-emerald-900">Verifikasi</a>
+                                        <a href="{{ route('manager.bookings', ['search' => $booking->id]) }}" class="text-emerald-600 hover:text-emerald-900">Detail</a>
                                     </td>
                                 </tr>
-                                <!-- Mock Data Row 2 -->
+                                @empty
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">Andi Pratama</div>
-                                        <div class="text-sm text-gray-500">089876543210</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">Badminton A</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">16 Des 2023</div>
-                                        <div class="text-sm text-gray-500">10:00 - 11:00 (1 Jam)</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Lunas
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <span class="text-gray-400">Selesai</span>
+                                    <td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                        Belum ada booking terbaru.
                                     </td>
                                 </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

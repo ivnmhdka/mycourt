@@ -30,15 +30,26 @@
                                 Riwayat Booking
                             </x-nav-link>
 
-                            <x-nav-link :href="route('notifications.index')"
-                                :active="request()->routeIs('notifications.index')">
-                                Notifikasi
+                        @endif
+
+                        @if(Auth::user()->role === 'manager')
+                            <x-nav-link :href="route('manager.dashboard')" :active="request()->routeIs('manager.dashboard')">
+                                {{ __('Manager Dashboard') }}
+                            </x-nav-link>
+                            <x-nav-link :href="route('manager.bookings')" :active="request()->routeIs('manager.bookings')">
+                                {{ __('Kelola Booking') }}
+                            </x-nav-link>
+                            <x-nav-link :href="route('manager.schedule')" :active="request()->routeIs('manager.schedule')">
+                                {{ __('Kelola Jadwal') }}
                             </x-nav-link>
                         @endif
 
-                        @if(in_array(Auth::user()->role, ['admin', 'manager']))
-                            <x-nav-link :href="url('/dashboard')" :active="request()->is('dashboard')">
-                                {{ __('Dashboard Panel') }}
+                        @if(Auth::user()->role === 'admin')
+                            <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                                {{ __('Admin Dashboard') }}
+                            </x-nav-link>
+                            <x-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
+                                {{ __('Kelola User') }}
                             </x-nav-link>
                         @endif
                     @endauth
@@ -125,10 +136,26 @@
             @endguest
 
             @auth
-                <!-- Authenticated Mobile Links here same logic as above -->
-                <x-responsive-nav-link :href="url('/dashboard')" :active="request()->is('dashboard')">
-                    {{ __('Dashboard') }}
-                </x-responsive-nav-link>
+                @if(Auth::user()->role === 'user')
+                    <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                        {{ __('Home') }}
+                    </x-responsive-nav-link>
+                @endif
+                
+                @if(Auth::user()->role === 'manager')
+                    <x-responsive-nav-link :href="route('manager.dashboard')" :active="request()->routeIs('manager.dashboard')">
+                        {{ __('Manager Dashboard') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('manager.schedule')" :active="request()->routeIs('manager.schedule')">
+                        {{ __('Kelola Jadwal') }}
+                    </x-responsive-nav-link>
+                @endif
+
+                @if(Auth::user()->role === 'admin')
+                    <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                        {{ __('Admin Dashboard') }}
+                    </x-responsive-nav-link>
+                @endif
             @endauth
         </div>
 

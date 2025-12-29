@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Field;
 use App\Models\Booking;
+use App\Models\Schedule;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -23,15 +24,52 @@ class UserBookingController extends Controller
         return view('user.fields', compact('fields'));
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
+        // 1. Fetch Field
         $field = Field::findOrFail($id);
         
-        // Fetch existing bookings for this field to show on calendar (simplified api or passed to view)
-        // For now, we just pass the field details.
-        // In a real scenario, you'd pass unavailable slots here.
+        // 2. Tentukan Tanggal (Default hari ini atau dari request)
+        $date = $request->input('date', date('Y-m-d'));
 
-        return view('user.booking', compact('field'));
+        // 3. Ambil data Booking status (Approved/Pending/Paid) -> Merah
+        $bookings = Booking::where('field_id', $id)
+            ->whereDate('start_time', $date)
+            ->where('status', '!=', 'rejected')
+            ->get();
+
+        // 4. Ambil data Schedule status (Blocked) -> Merah
+        $schedules = Schedule::where('field_id', $id)
+            ->whereDate('date', $date)
+            ->where('is_available', false)
+            ->get();
+
+        // 5. Merge keduanya menjadi satu array 'unavailableSlots'
+        $unavailableSlots = [];
+
+        foreach ($bookings as $booking) {
+            $start = Carbon::parse($booking->start_time);
+            $end = Carbon::parse($booking->end_time);
+            while ($start < $end) {
+                $unavailableSlots[] = $start->format('H:i');
+                $start->addHour();
+            }
+        }
+
+        foreach ($schedules as $schedule) {
+            $start = Carbon::parse($schedule->start_time);
+            $end = Carbon::parse($schedule->end_time);
+            while ($start < $end) {
+                // Hindari duplikat jika manager memblokir jadwal yang sudah ada booking (edge case)
+                if (!in_array($start->format('H:i'), $unavailableSlots)) {
+                    $unavailableSlots[] = $start->format('H:i');
+                }
+                $start->addHour();
+            }
+        }
+
+        // Kirim data ke view
+        return view('user.booking', compact('field', 'date', 'unavailableSlots'));
     }
 
     public function store(Request $request)
@@ -46,10 +84,9 @@ class UserBookingController extends Controller
         $startDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->start_time);
         $endDateTime = $startDateTime->copy()->addHours($request->duration);
 
-        // Check for Double Booking
-        // Overlap Logic: (StartA < EndB) and (EndA > StartB)
+        // --- 1. Check Existing Bookings (Double Booking) ---
         $conflictingBooking = Booking::where('field_id', $request->field_id)
-            ->where('status', '!=', 'rejected') // Ignore rejected bookings
+            ->where('status', '!=', 'rejected') 
             ->where(function ($query) use ($startDateTime, $endDateTime) {
                 $query->where('start_time', '<', $endDateTime)
                       ->where('end_time', '>', $startDateTime);
@@ -57,7 +94,25 @@ class UserBookingController extends Controller
             ->exists();
 
         if ($conflictingBooking) {
-            return back()->withErrors(['time_slot' => 'Jadwal yang dipilih sudah terisi. Silakan pilih waktu lain.'])->withInput();
+            return back()->with('error', 'Jadwal yang dipilih sudah terisi booking lain.')->withInput();
+        }
+
+        // --- 2. Check Blocked Schedules (Maintenance) ---
+        // Logic Overlap sama: StartBlock < EndRequest && EndBlock > StartRequest
+        $blockedSchedule = Schedule::where('field_id', $request->field_id)
+            ->whereDate('date', $request->date)
+            ->where('is_available', false)
+            ->where(function($query) use ($request, $endDateTime) {
+                $reqStart = $request->start_time; 
+                $reqEnd = $endDateTime->format('H:i'); 
+                
+                $query->where('start_time', '<', $reqEnd)
+                      ->where('end_time', '>', $reqStart);
+            })
+            ->exists();
+
+        if ($blockedSchedule) {
+            return back()->with('error', 'Jadwal tidak tersedia (Sedang Maintenance/Ditutup Pengelola).')->withInput();
         }
 
         // Calculate Price
@@ -74,15 +129,13 @@ class UserBookingController extends Controller
             'status' => 'pending',
         ]);
 
-        // Redirect to a success/payment page
         return redirect()->route('booking.payment', $booking->id);
     }
-
+    
     public function payment($id)
     {
         $booking = Booking::with('field')->findOrFail($id);
         
-        // Prevent accessing payment page if already paid or cancelled, etc if needed.
         if ($booking->status !== 'pending') {
              return redirect()->route('dashboard')->with('error', 'Booking tidak dalam status pending.');
         }
@@ -98,9 +151,8 @@ class UserBookingController extends Controller
              return redirect()->route('dashboard')->with('error', 'Booking tidak valid untuk pembayaran.');
         }
 
-        // Update status
         $booking->update([
-            'status' => 'paid' // Or 'paid' depending on your logic, using 'confirmed' as simple flow
+            'status' => 'approved' 
         ]);
 
         return redirect()->route('booking.success', $booking->id);
