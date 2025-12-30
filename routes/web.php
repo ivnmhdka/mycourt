@@ -42,7 +42,6 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::get('/booking/{id}/success', [UserBookingController::class, 'success'])->name('booking.success');
 
     Route::get('/riwayat-booking', [BookingHistoryController::class, 'index'])->name('booking.history');
-    Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
 });
 
 // ==============================
@@ -56,16 +55,14 @@ Route::middleware(['auth', 'verified', 'role:manager'])
         Route::get('/bookings', [ManagerController::class, 'index'])->name('bookings');
         Route::post('/bookings/{id}/status', [ManagerController::class, 'updateStatus'])->name('bookings.updateStatus');
 
-        Route::get('/schedule', function () {
-            return view('manager.schedule');
-        })->name('schedule');
-        
-Route::get('/laporan/pendapatan/pdf', [ManagerController::class, 'laporanPendapatanPdf'])
-    ->name('laporan.pendapatan.pdf');
+        Route::get('/schedule', [ManagerController::class, 'schedule'])->name('schedule');
+        Route::post('/schedule', [ManagerController::class, 'updateSchedule'])->name('schedule.update');
 
-Route::get('/laporan/pendapatan/excel', [ManagerController::class, 'laporanPendapatanExcel'])
-    ->name('laporan.pendapatan.excel');
+        Route::get('/laporan/pendapatan/pdf', [ManagerController::class, 'laporanPendapatanPdf'])
+            ->name('laporan.pendapatan.pdf');
 
+        Route::get('/laporan/pendapatan/excel', [ManagerController::class, 'laporanPendapatanExcel'])
+            ->name('laporan.pendapatan.excel');
     });
 
 

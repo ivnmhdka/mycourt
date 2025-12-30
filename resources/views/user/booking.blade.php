@@ -88,7 +88,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="bookingSystem({{ $currentField['price'] }})">
+    <div class="py-12" x-data="bookingSystem({{ $currentField['price'] }}, {{ json_encode($unavailableSlots) }})">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Left Column: Field Detail & Schedule -->
@@ -140,29 +140,41 @@
                             </div>
                         </div>
 
-                        <!-- Date Picker Mockup -->
+                        <!-- Date Picker -->
                         <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Booking</label>
-                            <input type="date" x-model="selectedDate"
-                                class="block w-full md:w-1/3 rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <form method="GET" action="{{ route('booking.show', $field->id) }}">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Booking</label>
+                                <div class="flex gap-2">
+                                    <input type="date" name="date" value="{{ $date }}" class="block w-full md:w-1/3 rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                    <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm">Check</button>
+                                </div>
+                            </form>
                         </div>
 
                         <!-- Slots -->
                         <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                            <!-- Mock Slots Loop -->
                             @foreach(['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'] as $time)
                                 @php
-                                    $status = in_array($time, ['19:00', '20:00']) ? 'booked' : 'available';
+                                    // Check if slot is unavailable (either booked or blocked)
+                                    // We'll use the array passed from controller
+                                    $isUnavailable = in_array($time, $unavailableSlots);
                                 @endphp
-                                <button @click="toggleSlot('{{ $time }}', '{{ $status }}')" :class="{
-                                                    'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100': '{{ $status }}' === 'available' && !selectedSlots.includes('{{ $time }}'),
-                                                    'bg-red-50 border-red-200 text-red-400 cursor-not-allowed': '{{ $status }}' === 'booked',
-                                                    'bg-yellow-50 border-yellow-400 text-yellow-700 ring-2 ring-yellow-400': selectedSlots.includes('{{ $time }}')
-                                                }"
+                                <button 
+                                    @click="toggleSlot('{{ $time }}', {{ $isUnavailable ? 'true' : 'false' }})"
+                                    :class="{
+                                        'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100': !{{ $isUnavailable ? 'true' : 'false' }} && !selectedSlots.includes('{{ $time }}'),
+                                        'bg-red-50 border-red-200 text-red-500 cursor-not-allowed opacity-75': {{ $isUnavailable ? 'true' : 'false' }},
+                                        'bg-yellow-50 border-yellow-400 text-yellow-700 ring-2 ring-yellow-400': selectedSlots.includes('{{ $time }}')
+                                    }"
                                     class="py-3 text-sm font-medium rounded-lg border transition-all duration-200 flex flex-col items-center justify-center">
                                     <span>{{ $time }}</span>
-                                    <span class="text-[10px] mt-1 font-normal"
-                                        x-text="'{{ $status }}' === 'booked' ? 'Booked' : (selectedSlots.includes('{{ $time }}') ? 'Dipilih' : 'Rp {{ number_format($currentField['price'] / 1000, 0) }}k')"></span>
+                                    <span class="text-[10px] mt-1 font-normal">
+                                        @if($isUnavailable)
+                                            Terisi
+                                        @else
+                                            <span x-text="selectedSlots.includes('{{ $time }}') ? 'Dipilih' : '{{ number_format($currentField['price'] / 1000, 0) }}k'"></span>
+                                        @endif
+                                    </span>
                                 </button>
                             @endforeach
                         </div>
@@ -186,7 +198,7 @@
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">Tanggal</span>
-                                <span class="font-medium text-gray-900"><span x-text="selectedDate"></span></span>
+                                <span class="font-medium text-gray-900">{{ Carbon\Carbon::parse($date)->isoFormat('D MMMM Y') }}</span>
                             </div>
                             <div class="border-t border-gray-100 pt-3">
                                 <div class="flex justify-between text-sm mb-2">
@@ -206,12 +218,18 @@
                         <form action="{{ route('booking.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="field_id" value="{{ $field->id }}">
-                            <input type="hidden" name="date" :value="selectedDate">
+                            <input type="hidden" name="date" value="{{ $date }}">
+                            
+                            <!-- Hidden inputs populated by Alpine -->
                             <input type="hidden" name="start_time" :value="startTime">
                             <input type="hidden" name="duration" :value="duration">
-
-                            <!-- Debugging/Legacy input -->
-                            <input type="hidden" name="slots" :value="JSON.stringify(selectedSlots)">
+                            
+                            <!-- Errors -->
+                            @if(session('error'))
+                                <div class="mb-4 text-sm text-red-600">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
 
                             <button type="submit" :disabled="selectedSlots.length === 0"
                                 :class="{'opacity-50 cursor-not-allowed': selectedSlots.length === 0}"
@@ -230,24 +248,25 @@
 
     <!-- Simple Alpine.js Logic -->
     <script>
-        function bookingSystem(price) {
+        function bookingSystem(price, serverUnavailableSlots) {
             return {
-                selectedDate: '{{ date('Y-m-d') }}',
+                unavailableSlots: serverUnavailableSlots || [],
                 selectedSlots: [],
                 pricePerHour: price,
                 get startTime() {
                     if (this.selectedSlots.length === 0) return '';
-                    return this.selectedSlots[0];
+                    let sorted = [...this.selectedSlots].sort();
+                    return sorted[0];
                 },
                 get duration() {
                     return this.selectedSlots.length;
                 },
-                toggleSlot(time, status) {
-                    if (status === 'booked') return;
-
+                toggleSlot(time, isUnavailable) {
+                    if (isUnavailable) return;
                     if (this.selectedSlots.includes(time)) {
                         this.selectedSlots = this.selectedSlots.filter(t => t !== time);
                     } else {
+                        // Optional: Check if contiguous? 
                         this.selectedSlots.push(time);
                     }
                     this.selectedSlots.sort();
