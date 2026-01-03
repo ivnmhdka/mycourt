@@ -51,6 +51,9 @@
                             <x-nav-link :href="route('admin.users')" :active="request()->routeIs('admin.users')">
                                 {{ __('Kelola User') }}
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.fields.index')" :active="request()->routeIs('admin.fields*')">
+                                {{ __('Kelola Lapangan') }}
+                            </x-nav-link>
                         @endif
                     @endauth
                 </div>

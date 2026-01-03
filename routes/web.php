@@ -7,6 +7,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserBookingController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\FieldController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -69,10 +71,24 @@ Route::middleware(['auth', 'verified', 'role:manager'])
 // ==============================
 // Admin Routes
 // ==============================
+//Route::middleware(['auth', 'verified', 'role:admin'])
+//    ->prefix('admin')
+//    ->name('admin.')
+//    ->group(function () {
+//        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+//        Route::get('/users', [AdminController::class, 'users'])->name('users');
+//        Route::get('/users/create', [AdminController::class, 'createUser'])->name('users.create');
+//        Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
+//        Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('users.edit');
+//        Route::patch('/users/{id}', [AdminController::class, 'updateUser'])->name('users.update');
+//        Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+//    });
+//
 Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/users', [AdminController::class, 'users'])->name('users');
         Route::get('/users/create', [AdminController::class, 'createUser'])->name('users.create');
@@ -80,7 +96,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('users.edit');
         Route::patch('/users/{id}', [AdminController::class, 'updateUser'])->name('users.update');
         Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+
+        // ✅ INI YANG KURANG SELAMA INI
+        Route::resource('fields', \App\Http\Controllers\Admin\FieldController::class);
+        // Route::resource('fields', FieldController::class);
     });
+
 
 // ==============================
 // Profile Routes (for All Roles)
