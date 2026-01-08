@@ -44,7 +44,14 @@ COPY --from=frontend /app/public/build /var/www/public/build
 # Copy Nginx config
 COPY docker/nginx/default.conf /etc/nginx/sites-enabled/default
 # Remove default nginx config if it exists
-RUN rm -f /etc/nginx/sites-enabled/default.conf /etc/nginx/conf.d/default.conf
+RUN rm -f /etc/nginx/sites-enabled/default \
+    && rm -f /etc/nginx/sites-available/default \
+    && rm -f /etc/nginx/sites-enabled/default.conf \
+    && rm -f /etc/nginx/conf.d/default.conf
+
+# Forward request and error logs to docker log collector
+RUN ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log
 
 # Copy entrypoint script
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
