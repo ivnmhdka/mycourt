@@ -33,13 +33,13 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 # Copy existing application directory contents
-COPY . /var/www
+COPY . /var/www/html
 
 # Copy built frontend assets from Stage 1
-COPY --from=frontend /app/public/build /var/www/public/build
+COPY --from=frontend /app/public/build /var/www/html/public/build
 
 # Copy Nginx config
 COPY docker/nginx/default.conf /etc/nginx/sites-enabled/default
@@ -61,9 +61,9 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Permissions
-RUN chown -R www-data:www-data /var/www \
-    && chmod -R 775 /var/www/storage \
-    && chmod -R 775 /var/www/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
