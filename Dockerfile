@@ -9,64 +9,40 @@ COPY . .
 RUN npm run build
 
 # ----------------------
-# Stage 2: Setup Backend & Serve
+# Stage 2: Serve Application
 # ----------------------
-FROM php:8.2-fpm
+FROM php:8.2-cli
+
+WORKDIR /var/www
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
+    unzip \
+    libzip-dev \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    nginx \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-install pdo pdo_mysql zip mbstring exif pcntl bcmath gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy existing application directory contents
-COPY . /var/www/html
+# Copy existsing application directory contents
+COPY . .
 
 # Copy built frontend assets from Stage 1
-COPY --from=frontend /app/public/build /var/www/html/public/build
-
-# Copy Nginx config
-COPY docker/nginx/default.conf /etc/nginx/sites-enabled/default
-# Remove default nginx config if it exists
-RUN rm -f /etc/nginx/sites-enabled/default \
-    && rm -f /etc/nginx/sites-available/default \
-    && rm -f /etc/nginx/sites-enabled/default.conf \
-    && rm -f /etc/nginx/conf.d/default.conf
-
-# Forward request and error logs to docker log collector
-RUN ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log
-
-# Copy entrypoint script
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY --from=frontend /app/public/build /var/www/public/build
 
 # Install dependencies (production optimized)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+RUN chmod -R 775 storage bootstrap/cache
 
-# Expose port 80
-EXPOSE 80
+# Expose port (Railway will override this via $PORT, but 8000 is default for artisan)
+EXPOSE 8080
 
 # Start command
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Using sh -c to ensure environment variables are expanded correctly in the CMD
+CMD sh -c "php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
