@@ -94,36 +94,71 @@ class ManagerController extends Controller
         ));
     }
 
-    public function laporanPendapatanPdf()
-    {
-        $today = Carbon::today();
+public function laporanPendapatanPdf(Request $request)
+{
+    $periode = $request->periode ?? 'harian';
 
-        // Fix: Include 'approved'
-        $bookings = Booking::with(['user', 'field'])
-            ->whereDate('created_at', $today)
-            ->whereIn('status', ['approved', 'paid'])
-            ->orderBy('created_at', 'asc')
-            ->get();
+    $query = Booking::with(['user', 'field'])
+        ->whereIn('status', ['approved', 'paid']);
 
-        $totalPendapatan = $bookings->sum('total_price');
-        $tanggalCetak = $today->format('d-m-Y');
+    // ======================
+    // HARIAN
+    // ======================
+    if ($periode === 'harian') {
+        $tanggal = $request->tanggal
+            ? Carbon::parse($request->tanggal)->startOfDay()
+            : Carbon::today()->startOfDay();
 
-        $pdf = Pdf::loadView('manager.laporan.pendapatan-pdf', [
-            'bookings' => $bookings,
-            'totalPendapatan' => $totalPendapatan,
-            'tanggalCetak' => $tanggalCetak,
-        ]);
-
-        return $pdf->download('laporan-pendapatan-hari-ini.pdf');
+        $query->whereDate('created_at', $tanggal);
+        $tanggalCetak = $tanggal->format('d-m-Y');
     }
 
-    public function laporanPendapatanExcel()
-    {
-        return Excel::download(
-            new PendapatanHarianExport,
-            'laporan-pendapatan-hari-ini.xlsx'
-        );
+    // ======================
+    // MINGGUAN (RANGE TANGGAL)
+    // ======================
+    elseif ($periode === 'mingguan') {
+        $start = Carbon::parse($request->start_date)->startOfDay();
+        $end   = Carbon::parse($request->end_date)->endOfDay(); // 🔥 FIX UTAMA
+
+        $query->whereBetween('created_at', [$start, $end]);
+        $tanggalCetak = $start->format('d-m-Y') . ' s/d ' . $end->format('d-m-Y');
     }
+
+    // ======================
+    // BULANAN (input type="month")
+    // ======================
+    elseif ($periode === 'bulanan') {
+        // contoh: 2025-12
+        [$tahun, $bulan] = explode('-', $request->bulan);
+
+        $query->whereYear('created_at', $tahun)
+              ->whereMonth('created_at', $bulan);
+
+        $tanggalCetak = Carbon::create($tahun, $bulan, 1)
+            ->translatedFormat('F Y');
+    }
+
+    $bookings = $query->orderBy('created_at', 'asc')->get();
+    $totalPendapatan = $bookings->sum('total_price');
+
+    $pdf = Pdf::loadView('manager.laporan.pendapatan-pdf', [
+        'bookings' => $bookings,
+        'totalPendapatan' => $totalPendapatan,
+        'tanggalCetak' => $tanggalCetak,
+    ]);
+
+    return $pdf->download('laporan-pendapatan.pdf');
+}
+
+
+public function laporanPendapatanExcel(Request $request)
+{
+    return Excel::download(
+        new PendapatanHarianExport($request),
+        'laporan-pendapatan.xlsx'
+    );
+}
+
 
     public function schedule(Request $request)
     {
