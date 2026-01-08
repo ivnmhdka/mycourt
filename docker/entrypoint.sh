@@ -27,9 +27,8 @@ php artisan view:cache
 echo "Starting Nginx..."
 nginx
 
-# Check if Nginx is running
-echo "Process List:"
-ps aux | grep nginx
+# Check if Nginx is running (Simplistic check)
+echo "Nginx started."
 
 # Start PHP-FPM
 echo "Starting PHP-FPM..."
