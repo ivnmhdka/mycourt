@@ -45,8 +45,13 @@ php artisan view:cache
 # -----------------------------------------------------------------------------
 # 4. Start Services
 # -----------------------------------------------------------------------------
-echo "Starting Nginx..."
-nginx -t && nginx
-
+# Start PHP-FPM in background (daemon mode)
 echo "Starting PHP-FPM..."
-php-fpm
+php-fpm -D
+
+# Wait for PHP-FPM to start
+sleep 1
+
+# Start Nginx in foreground
+echo "Starting Nginx..."
+nginx -g "daemon off;"
