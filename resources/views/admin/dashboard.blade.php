@@ -7,25 +7,47 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                    <div class="text-sm font-medium text-gray-500 truncate">Total Users</div>
-                    <div class="mt-1 text-3xl font-semibold text-gray-900">1,234</div>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                    <div class="text-sm font-medium text-gray-500 truncate">Active Managers</div>
-                    <div class="mt-1 text-3xl font-semibold text-gray-900">15</div>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                    <div class="text-sm font-medium text-gray-500 truncate">Total Fields</div>
-                    <div class="mt-1 text-3xl font-semibold text-gray-900">42</div>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
-                    <div class="text-sm font-medium text-gray-500 truncate">Total Bookings</div>
-                    <div class="mt-1 text-3xl font-semibold text-gray-900">8,569</div>
-                </div>
-            </div>
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+    <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+        <div class="text-sm font-medium text-gray-500 truncate">
+            Total Users
+        </div>
+        <div class="mt-1 text-3xl font-semibold text-gray-900">
+            {{ $totalUsers }}
+        </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+        <div class="text-sm font-medium text-gray-500 truncate">
+            Active Managers
+        </div>
+        <div class="mt-1 text-3xl font-semibold text-gray-900">
+            {{ $totalManagers }}
+        </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+        <div class="text-sm font-medium text-gray-500 truncate">
+            Total Fields
+        </div>
+        <div class="mt-1 text-3xl font-semibold text-gray-900">
+            {{ $totalFields }}
+        </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+        <div class="text-sm font-medium text-gray-500 truncate">
+            Total Bookings
+        </div>
+        <div class="mt-1 text-3xl font-semibold text-gray-900">
+            {{ $totalBookings }}
+        </div>
+    </div>
+
+</div>
+
 
             <!-- Quick Actions -->
             <div class="bg-white overflow-hidden shadow-sm rounded-lg">

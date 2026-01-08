@@ -117,7 +117,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::patch('/users/{id}', [AdminController::class, 'updateUser'])->name('users.update');
         Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('users.destroy');
 
-        // ✅ INI YANG KURANG SELAMA INI
         Route::resource('fields', \App\Http\Controllers\Admin\FieldController::class);
         // Route::resource('fields', FieldController::class);
     });

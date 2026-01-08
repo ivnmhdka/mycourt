@@ -47,21 +47,59 @@
                             </p>
                         </div>
 
-                        <div class="flex gap-3">
-                            <a href="{{ route('manager.laporan.pendapatan.pdf') }}" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md
-                          font-semibold text-xs text-white uppercase tracking-widest
-                          hover:bg-red-700 active:bg-red-900 focus:outline-none focus:ring
-                          focus:ring-red-300 transition">
+                        <div class="flex gap-3 items-end">
+
+                            <!-- PERIODE -->
+                            <div>
+                                <label class="text-xs text-gray-600">Periode</label>
+                                <select id="periode" class="rounded-md text-sm">
+                                    <option value="harian">Harian</option>
+                                    <option value="mingguan">Mingguan</option>
+                                    <option value="bulanan">Bulanan</option>
+                                </select>
+                            </div>
+
+                            <!-- HARIAN -->
+                            <div id="filter-harian">
+                                <label class="text-xs text-gray-600">Tanggal</label>
+                                <input type="date" id="tanggal" class="rounded-md text-sm"
+                                    value="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <!-- MINGGUAN -->
+                            <div id="filter-mingguan" class="hidden">
+                                <label class="text-xs text-gray-600">Range</label>
+                                <div class="flex gap-1">
+                                    <input type="date" id="start_date" class="rounded-md text-sm">
+                                    <input type="date" id="end_date" class="rounded-md text-sm">
+                                </div>
+                            </div>
+
+                            <!-- BULANAN -->
+                            <div id="filter-bulanan" class="hidden">
+                                <label class="text-xs text-gray-600">Bulan</label>
+                                <input type="month" id="bulan" class="rounded-md text-sm">
+                            </div>
+
+                            <!-- PDF -->
+                            <a id="btnPdf"
+                            href="{{ route('manager.laporan.pendapatan.pdf') }}"
+                            target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-red-600 rounded-md text-xs text-white font-semibold
+                                    hover:bg-red-700 transition">
                                 Cetak PDF
                             </a>
 
-                            <a href="{{ route('manager.laporan.pendapatan.excel') }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md
-                          font-semibold text-xs text-white uppercase tracking-widest
-                          hover:bg-emerald-700 active:bg-emerald-900 focus:outline-none focus:ring
-                          focus:ring-emerald-300 transition">
+                            <!-- EXCEL -->
+                            <a id="btnExcel"
+                            href="{{ route('manager.laporan.pendapatan.excel') }}"
+                            class="inline-flex items-center px-4 py-2 bg-emerald-600 rounded-md text-xs text-white font-semibold
+                                    hover:bg-emerald-700 transition">
                                 Export Excel
                             </a>
+
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -150,4 +188,54 @@
             </div>
         </div>
     </div>
+    <script>
+const periode = document.getElementById('periode');
+
+const harian   = document.getElementById('filter-harian');
+const mingguan = document.getElementById('filter-mingguan');
+const bulanan  = document.getElementById('filter-bulanan');
+
+const btnPdf   = document.getElementById('btnPdf');
+const btnExcel = document.getElementById('btnExcel');
+
+function updateButtons() {
+    let params = new URLSearchParams();
+    params.append('periode', periode.value);
+
+    if (periode.value === 'harian') {
+        params.append('tanggal', document.getElementById('tanggal').value);
+    }
+
+    if (periode.value === 'mingguan') {
+        params.append('start_date', document.getElementById('start_date').value);
+        params.append('end_date', document.getElementById('end_date').value);
+    }
+
+    if (periode.value === 'bulanan') {
+        params.append('bulan', document.getElementById('bulan').value);
+    }
+
+    btnPdf.href   = `{{ route('manager.laporan.pendapatan.pdf') }}?${params.toString()}`;
+    btnExcel.href = `{{ route('manager.laporan.pendapatan.excel') }}?${params.toString()}`;
+}
+
+periode.addEventListener('change', () => {
+    harian.classList.add('hidden');
+    mingguan.classList.add('hidden');
+    bulanan.classList.add('hidden');
+
+    if (periode.value === 'harian') harian.classList.remove('hidden');
+    if (periode.value === 'mingguan') mingguan.classList.remove('hidden');
+    if (periode.value === 'bulanan') bulanan.classList.remove('hidden');
+
+    updateButtons();
+});
+
+document.querySelectorAll('#tanggal, #start_date, #end_date, #bulan')
+    .forEach(el => el?.addEventListener('change', updateButtons));
+
+// init
+updateButtons();
+</script>
+
 </x-app-layout>
