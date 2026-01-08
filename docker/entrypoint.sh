@@ -3,33 +3,50 @@
 # Terminate on error
 set -e
 
-echo "Deploying on PORT: ${PORT}"
+echo "Deploying on PORT: ${PORT:-80}"
 
-# Configure Nginx to listen on Railway's dynamic PORT
+# -----------------------------------------------------------------------------
+# 1. Configure Nginx
+# -----------------------------------------------------------------------------
+# Replaces 'listen 80;' with 'listen $PORT;'
 if [ -n "$PORT" ]; then
     sed -i "s/listen 80;/listen ${PORT};/g" /etc/nginx/sites-enabled/default
 fi
 
-# Verify Nginx Config
-echo "Testing Nginx Config..."
-nginx -t
+# -----------------------------------------------------------------------------
+# 2. Configure PHP-FPM (Proactive Fixes)
+# -----------------------------------------------------------------------------
+# Locate www.conf (varies by distro, usually in /usr/local/etc/php-fpm.d/www.conf)
+PHP_CONF="/usr/local/etc/php-fpm.d/www.conf"
 
-# Show modified config (first few lines) to verify sed
-echo "Nginx Config Head:"
-head -n 10 /etc/nginx/sites-enabled/default
+if [ -f "$PHP_CONF" ]; then
+    echo "Configuring PHP-FPM at $PHP_CONF"
+    
+    # Force listen on 127.0.0.1:9000 (Matches Nginx fastcgi_pass)
+    sed -i 's/^listen = .*/listen = 127.0.0.1:9000/' "$PHP_CONF"
+    
+    # Ensure environment variables are not cleared (Critical for Laravel)
+    sed -i 's/^;clear_env = no/clear_env = no/' "$PHP_CONF"
+    
+    # Enable worker output for debugging
+    sed -i 's/^;catch_workers_output = yes/catch_workers_output = yes/' "$PHP_CONF"
+else
+    echo "WARNING: $PHP_CONF not found. Skipping PHP config tweaks."
+fi
 
-# Cache configuration
+# -----------------------------------------------------------------------------
+# 3. Application Setup
+# -----------------------------------------------------------------------------
+echo "Caching configuration..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Start Nginx
+# -----------------------------------------------------------------------------
+# 4. Start Services
+# -----------------------------------------------------------------------------
 echo "Starting Nginx..."
-nginx
+nginx -t && nginx
 
-# Check if Nginx is running (Simplistic check)
-echo "Nginx started."
-
-# Start PHP-FPM
 echo "Starting PHP-FPM..."
 php-fpm
