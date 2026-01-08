@@ -28,10 +28,30 @@ Route::get('/fields', function () {
 // ==============================
 // User (Penyewa) Routes
 // ==============================
+// ==============================
+// Dashboard Redirection (General)
+// ==============================
+Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
+    $user = Illuminate\Support\Facades\Auth::user();
+
+    if ($user->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user->role === 'manager') {
+        return redirect()->route('manager.dashboard');
+    }
+
+    // Default: User Dashboard
+    return view('user.index');
+})->name('dashboard');
+
+
+// ==============================
+// User (Penyewa) Routes
+// ==============================
 Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('user.index');
-    })->name('dashboard');
+    // Route::get('/dashboard', function () {
+    //     return view('user.index');
+    // })->name('dashboard');
 
     Route::get('/fields', [UserBookingController::class, 'index'])->name('fields.index');
     Route::get('/booking/{id}', [UserBookingController::class, 'show'])->name('booking.show');
