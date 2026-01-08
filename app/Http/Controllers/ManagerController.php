@@ -18,13 +18,12 @@ class ManagerController extends Controller
     {
         $today = Carbon::today();
 
-        // Booking pending
-        $pendingCount = Booking::where('status', 'pending')->count();
+
 
         // Booking hari ini (Volume booking masuk hari ini, excluding rejected)
         $todayBookings = Booking::whereDate('created_at', today())
-                ->where('status', '!=', 'rejected')
-                ->count();
+            ->where('status', '!=', 'rejected')
+            ->count();
 
 
         // 🔥 PENDAPATAN HARI INI (INI INTINYA)
@@ -41,7 +40,6 @@ class ManagerController extends Controller
             ->get();
 
         return view('manager.dashboard', compact(
-            'pendingCount',
             'todayBookings',
             'todayIncome',
             'recentBookings'
@@ -60,13 +58,13 @@ class ManagerController extends Controller
 
         if ($request->has('search')) {
             $search = $request->search;
-            $query->whereHas('user', function($q) use ($search) {
+            $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%");
             })->orWhere('id', 'like', "%{$search}%");
         }
 
         $bookings = $query->paginate(10);
-        
+
         return view('manager.bookings', compact('bookings'));
     }
 
@@ -130,8 +128,8 @@ class ManagerController extends Controller
     public function schedule(Request $request)
     {
         $date = $request->input('date', date('Y-m-d'));
-        $fieldId = $request->input('field_id', 1); 
-        
+        $fieldId = $request->input('field_id', 1);
+
         $fields = Field::all();
 
         // 2. Ambil Bookings di tanggal tersebut (untuk warna Merah)
@@ -139,7 +137,7 @@ class ManagerController extends Controller
             ->whereDate('start_time', $date)
             ->where('status', '!=', 'rejected')
             ->get();
-            
+
         // 3. Ambil Blocked Slots (Schedules) di tanggal tersebut (untuk warna Abu-abu)
         $schedules = Schedule::where('field_id', $fieldId)
             ->whereDate('date', $date)
@@ -151,7 +149,7 @@ class ManagerController extends Controller
         foreach ($bookings as $booking) {
             $start = Carbon::parse($booking->start_time);
             $end = Carbon::parse($booking->end_time);
-            
+
             while ($start < $end) {
                 // Key by time string 'H:i'
                 // Value is the booking object or specific details needed
@@ -160,7 +158,7 @@ class ManagerController extends Controller
                     'id' => $booking->id,
                     'user_name' => $booking->user->name ?? 'User Terhapus',
                     'start_time' => $booking->start_time, // useful for checking match
-                    'original_booking' => $booking 
+                    'original_booking' => $booking
                 ];
                 $start->addHour();
             }
@@ -170,7 +168,7 @@ class ManagerController extends Controller
         foreach ($schedules as $schedule) {
             $start = Carbon::parse($schedule->start_time);
             $end = Carbon::parse($schedule->end_time);
-            
+
             while ($start < $end) {
                 $blockedSlots[] = $start->format('H:i');
                 $start->addHour();
@@ -202,16 +200,16 @@ class ManagerController extends Controller
                 // Or covering this time.
                 // Simple approach: find bookings where start_time matches
                 $startDateTime = Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $time);
-                
+
                 Booking::where('field_id', $fieldId)
                     ->where('status', '!=', 'rejected')
-                    ->where(function($q) use ($startDateTime) {
+                    ->where(function ($q) use ($startDateTime) {
                         // Check if this specific hour is covered by a booking
                         // The cancelled_bookings array sends specific hours (08:00).
                         // If a booking is 08:00-10:00, sending 08:00 should cancel it.
                         // If sending 09:00, should it cancel the whole booking? Yes probably.
                         $q->where('start_time', '<=', $startDateTime)
-                          ->where('end_time', '>', $startDateTime);
+                            ->where('end_time', '>', $startDateTime);
                     })
                     ->update(['status' => 'rejected']);
             }
