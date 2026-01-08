@@ -78,8 +78,20 @@
         ];
 
         // Fallback or use DB data if needed, but per request we strictly force visual consistency
-        // Uses the ID passed from controller ($field->id)
-        $currentField = $fieldsConfig[$field->id] ?? $fieldsConfig[1];
+        // Check if the field ID exists in the hardcoded config
+        if (array_key_exists($field->id, $fieldsConfig)) {
+            $currentField = $fieldsConfig[$field->id];
+        } else {
+            // Dynamic fallback using DB data for new fields
+            $currentField = [
+                'name' => $field->name,
+                'type' => ucfirst($field->category) . ' Court Standard', // Default type based on category
+                'price' => $field->price_per_hour,
+                'image' => $field->image_path ?? 'https://via.placeholder.com/800x600?text=No+Image',
+                'description' => $field->description ?? 'Deskripsi belum tersedia for this field.',
+                'facilities' => ['Standar Fasilitas', 'Penerangan LED', 'Area Istirahat'] // GENERIC DEFAULTS
+            ];
+        }
     @endphp
 
     <x-slot name="header">

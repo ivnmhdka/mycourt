@@ -13,6 +13,11 @@ class UserBookingController extends Controller
 {
     public function index(Request $request)
     {
+        // Enforce Category Selection
+        if (!$request->has('category')) {
+            return redirect()->route('dashboard');
+        }
+
         $query = Field::query();
 
         if ($request->has('category')) {
