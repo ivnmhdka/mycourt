@@ -18,7 +18,6 @@
                         <div class="flex gap-2">
                             <select name="status" class="rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500" onchange="this.form.submit()">
                                 <option value="Semua Status" {{ request('status') == 'Semua Status' ? 'selected' : '' }}>Semua Status</option>
-                                <option value="Pending" {{ request('status') == 'Pending' ? 'selected' : '' }}>Pending</option>
                                 <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>Approved (Lunas)</option>
                                 <option value="Rejected" {{ request('status') == 'Rejected' ? 'selected' : '' }}>Rejected (Batal)</option>
                             </select>
